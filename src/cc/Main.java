@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Enumeration;
 
+import javax.comm.CommDriver;
 import javax.comm.CommPortIdentifier;
 import javax.comm.PortInUseException;
 import javax.comm.SerialPort;
@@ -43,12 +44,11 @@ public class Main {
         final JColorChooser colorChooser = new JColorChooser();
 
         ColorSelectionModel model = colorChooser.getSelectionModel();
-        
+
         // If the state changed, get new color and send it via UART
         ChangeListener changeListener = new ChangeListener() {
             public void stateChanged(ChangeEvent changeEvent) {
                 Color newForegroundColor = colorChooser.getColor();
-
 
                 String newRGB = "(" + String.format("%03d", newForegroundColor.getRed()) + ",";
                 newRGB += String.format("%03d", newForegroundColor.getGreen()) + ",";
@@ -87,17 +87,38 @@ public class Main {
     }
 
     static void openConnection(String port) {
+        String driverName = "com.sun.comm.Win32Driver";
+        try {
+            CommDriver commdriver = (CommDriver) Class.forName(driverName).newInstance();
+            commdriver.initialize();
+        } catch (Exception e2) {
+            e2.printStackTrace();
+        }
+
         Enumeration<CommPortIdentifier> ports = CommPortIdentifier.getPortIdentifiers();
 
         while (ports.hasMoreElements()) {
 
             CommPortIdentifier portIdentifier = ports.nextElement();
+            System.out.println(portIdentifier.getName());
             if (portIdentifier.getName().equals(port)) {
                 cid = portIdentifier;
+                System.out.println("HALLO!!");
             }
         }
+        if (cid == null) {
+            try {
+                cid = CommPortIdentifier.getPortIdentifier(port);
+                System.out.println("Found port: " + port);
+            } catch (Exception e){
+                System.err.println("Not any port was found!");
+                e.printStackTrace();
+                System.exit(1);                
+            }            
+            
+        }
         try {
-            serialPort = (SerialPort) cid.open("SimpleWriteApp", 2000);
+            serialPort = (SerialPort) cid.open("SimpleWriijkteApp", 2000);
         } catch (PortInUseException e) {
             System.err.println("Port already in use!");
             e.printStackTrace();
