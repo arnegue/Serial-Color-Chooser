@@ -95,28 +95,22 @@ public class Main {
             e2.printStackTrace();
         }
 
-        Enumeration<CommPortIdentifier> ports = CommPortIdentifier.getPortIdentifiers();
-
-        while (ports.hasMoreElements()) {
-
-            CommPortIdentifier portIdentifier = ports.nextElement();
-            System.out.println(portIdentifier.getName());
-            if (portIdentifier.getName().equals(port)) {
-                cid = portIdentifier;
-                System.out.println("HALLO!!");
-            }
-        }
-        if (cid == null) {
-            try {
-                cid = CommPortIdentifier.getPortIdentifier(port);
-                System.out.println("Found port: " + port);
-            } catch (Exception e){
-                System.err.println("Not any port was found!");
-                e.printStackTrace();
-                System.exit(1);                
-            }            
+        try {
+            cid = CommPortIdentifier.getPortIdentifier(port);
+            System.out.println("Found port: " + port);
+        } catch (Exception e) {
+            System.err.println("Did not find port " + port + ". Available ports are (if there are any): ");
             
+            Enumeration<CommPortIdentifier> ports = CommPortIdentifier.getPortIdentifiers();
+            while (ports.hasMoreElements()) {
+                CommPortIdentifier portIdentifier = ports.nextElement();
+                System.err.println(portIdentifier.getName());
+            }
+
+            e.printStackTrace();
+            System.exit(1);
         }
+
         try {
             serialPort = (SerialPort) cid.open("SimpleWriijkteApp", 2000);
         } catch (PortInUseException e) {
