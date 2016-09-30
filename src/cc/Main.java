@@ -87,20 +87,24 @@ public class Main {
     }
 
     static void openConnection(String port) {
-        String driverName = "com.sun.comm.Win32Driver";
-        try {
-            CommDriver commdriver = (CommDriver) Class.forName(driverName).newInstance();
-            commdriver.initialize();
-        } catch (Exception e2) {
-            e2.printStackTrace();
+        // It seems like you have to load the driver for this
+        if (System.getProperty("os.name").contains("Windows")) {
+            String driverName = "com.sun.comm.Win32Driver";
+            try {
+                CommDriver commdriver = (CommDriver) Class.forName(driverName).newInstance();
+                commdriver.initialize();
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
         }
 
+        // Try to get the port given in parameter
         try {
             cid = CommPortIdentifier.getPortIdentifier(port);
             System.out.println("Found port: " + port);
         } catch (Exception e) {
             System.err.println("Did not find port " + port + ". Available ports are (if there are any): ");
-            
+
             Enumeration<CommPortIdentifier> ports = CommPortIdentifier.getPortIdentifiers();
             while (ports.hasMoreElements()) {
                 CommPortIdentifier portIdentifier = ports.nextElement();
@@ -111,18 +115,23 @@ public class Main {
             System.exit(1);
         }
 
+        // Open the port
         try {
             serialPort = (SerialPort) cid.open("SimpleWriijkteApp", 2000);
         } catch (PortInUseException e) {
             System.err.println("Port already in use!");
             e.printStackTrace();
         }
+        
+        // Get Output- and Inputstream
         try {
             outputStream = serialPort.getOutputStream();
             inputStream = serialPort.getInputStream();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
+        // Set parameters for Serial port
         try {
             serialPort.setSerialPortParams(9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
             System.out.println(serialPort.getName());
