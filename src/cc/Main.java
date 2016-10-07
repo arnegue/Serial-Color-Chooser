@@ -98,6 +98,7 @@ public class Main {
             }
         }
 
+        
         // Try to get the port given in parameter
         try {
             cid = CommPortIdentifier.getPortIdentifier(port);
@@ -117,7 +118,9 @@ public class Main {
 
         // Open the port
         try {
-            serialPort = (SerialPort) cid.open("SimpleWriijkteApp", 2000);
+            String appName = "RGB-Trangsmiter";
+            int portOpenDelay = 2000;
+            serialPort = (SerialPort) cid.open(appName, portOpenDelay); // TODO: Maybe here should be a check if unix or windows-system
         } catch (PortInUseException e) {
             System.err.println("Port already in use!");
             e.printStackTrace();
@@ -133,7 +136,7 @@ public class Main {
         
         // Set parameters for Serial port
         try {
-            serialPort.setSerialPortParams(9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+            serialPort.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
             System.out.println(serialPort.getName());
         } catch (UnsupportedCommOperationException e) {
             e.printStackTrace();
