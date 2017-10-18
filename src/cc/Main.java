@@ -33,7 +33,7 @@ public class Main {
     public static void main(String[] args) {
 
         // Open
-        openConnection("COM12");
+        openConnection("COM8");
 
         // Init Frame
 
@@ -50,10 +50,7 @@ public class Main {
             public void stateChanged(ChangeEvent changeEvent) {
                 Color newForegroundColor = colorChooser.getColor();
 
-                String newRGB = "(" + String.format("%03d", newForegroundColor.getRed()) + ",";
-                newRGB += String.format("%03d", newForegroundColor.getGreen()) + ",";
-                newRGB += String.format("%03d", newForegroundColor.getBlue()) + ")\n";
-                System.out.print("Sending: " + newRGB);
+                String newRGB = "(" + (char) newForegroundColor.getRed() + "," + (char) newForegroundColor.getGreen() + "," + (char) newForegroundColor.getBlue() + ")";
 
                 try {
                     outputStream.write(newRGB.getBytes());
@@ -98,7 +95,6 @@ public class Main {
             }
         }
 
-        
         // Try to get the port given in parameter
         try {
             cid = CommPortIdentifier.getPortIdentifier(port);
@@ -125,7 +121,7 @@ public class Main {
             System.err.println("Port already in use!");
             e.printStackTrace();
         }
-        
+
         // Get Output- and Inputstream
         try {
             outputStream = serialPort.getOutputStream();
@@ -133,11 +129,11 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+
         // Set parameters for Serial port
         try {
             serialPort.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
-            System.out.println(serialPort.getName());
+            System.out.println("Sending... " + serialPort.getName());
         } catch (UnsupportedCommOperationException e) {
             e.printStackTrace();
         }
