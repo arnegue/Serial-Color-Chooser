@@ -8,7 +8,7 @@ For this project i used the javax.comm-libary. The jar-file in this repo is NOT 
 Before starting your program, please select in first in your Mainfile your desired COM-Port (Line 35 ``openConnection(PORT)``)
 
 # Starting the program # 
-Start as you like your program in your favourite IDE or with command line itself.
+Start as you like your program in your favorite IDE or with command line itself.
 
 # Choosing the color #
 Go to the Register ``HSV`` and change the saturation-value to 100 %. After that you can choose every RGB-Value which will be sent via UART.

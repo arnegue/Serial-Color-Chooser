@@ -6,7 +6,9 @@ import java.awt.Container;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 import javax.comm.CommDriver;
 import javax.comm.CommPortIdentifier;
@@ -15,6 +17,7 @@ import javax.comm.SerialPort;
 import javax.comm.UnsupportedCommOperationException;
 import javax.swing.JColorChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.colorchooser.ColorSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -31,9 +34,29 @@ public class Main {
     static SerialPort serialPort;
 
     public static void main(String[] args) {
+        // Load Driver
+        if (System.getProperty("os.name").contains("Windows")) {
+            String driverName = "com.sun.comm.Win32Driver";
+            try {
+                CommDriver commdriver = (CommDriver) Class.forName(driverName).newInstance();
+                commdriver.initialize();
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
+        }
 
+        Enumeration<CommPortIdentifier> ports = CommPortIdentifier.getPortIdentifiers();
+        List<String> portsList = new ArrayList<>();
+        while (ports.hasMoreElements()) {
+            CommPortIdentifier portIdentifier = ports.nextElement();
+            portsList.add(portIdentifier.getName());
+        }
+        //  System.out.println("Ports: " + availablePorts);
+        //String path = JOptionPane.showInputDialog("Enter a port (" + availablePorts + ")");
+
+        String path = (String) JOptionPane.showInputDialog(null, "Chose COM-Port", "COM-Port", JOptionPane.PLAIN_MESSAGE, null, portsList.toArray(), portsList.toArray()[0]);
         // Open
-        openConnection("COM8");
+        openConnection(path);
 
         // Init Frame
 
@@ -44,16 +67,22 @@ public class Main {
         final JColorChooser colorChooser = new JColorChooser();
 
         ColorSelectionModel model = colorChooser.getSelectionModel();
+        byte sendBytes[] = new byte[7]; // (x,x,x)
+        sendBytes[0] = '(';
+        sendBytes[2] = ',';
+        sendBytes[4] = ',';
+        sendBytes[6] = ')';
 
-        // If the state changed, get new color and send it via UART
         ChangeListener changeListener = new ChangeListener() {
             public void stateChanged(ChangeEvent changeEvent) {
-                Color newForegroundColor = colorChooser.getColor();
 
-                String newRGB = "(" + (char) newForegroundColor.getRed() + "," + (char) newForegroundColor.getGreen() + "," + (char) newForegroundColor.getBlue() + ")";
+                Color newForegroundColor = colorChooser.getColor();
+                sendBytes[1] = (byte) (newForegroundColor.getRed() & 0xFF); // red
+                sendBytes[3] = (byte) (newForegroundColor.getGreen() & 0xFF); // green
+                sendBytes[5] = (byte) (newForegroundColor.getBlue() & 0xFF); // blue
 
                 try {
-                    outputStream.write(newRGB.getBytes());
+                    outputStream.write(sendBytes);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -85,15 +114,6 @@ public class Main {
 
     static void openConnection(String port) {
         // It seems like you have to load the driver for this
-        if (System.getProperty("os.name").contains("Windows")) {
-            String driverName = "com.sun.comm.Win32Driver";
-            try {
-                CommDriver commdriver = (CommDriver) Class.forName(driverName).newInstance();
-                commdriver.initialize();
-            } catch (Exception e2) {
-                e2.printStackTrace();
-            }
-        }
 
         // Try to get the port given in parameter
         try {
@@ -119,6 +139,7 @@ public class Main {
             serialPort = (SerialPort) cid.open(appName, portOpenDelay); // TODO: Maybe here should be a check if unix or windows-system
         } catch (PortInUseException e) {
             System.err.println("Port already in use!");
+            JOptionPane.showMessageDialog(null, e.toString(), "Error - Port already in use!", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
 
@@ -132,6 +153,7 @@ public class Main {
 
         // Set parameters for Serial port
         try {
+            //serialPort.setSerialPortParams(2000000, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
             serialPort.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
             System.out.println("Sending... " + serialPort.getName());
         } catch (UnsupportedCommOperationException e) {
